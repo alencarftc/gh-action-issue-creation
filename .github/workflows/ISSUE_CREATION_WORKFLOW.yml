@@ -31,7 +31,6 @@ env:
   MONTH_12: "Dezembro"
   # Change this variable for changing the meeting weekday
   DATE_WEEKDAY: "wednesday"
-  GRUPO_DE_TRABALHO_OU_TEMA_DA_REUNIAO: "Geral"
 
 jobs:
   create_issue:
@@ -48,21 +47,25 @@ jobs:
         with:
           path: .github/ISSUE_TEMPLATE/reuniao.md
 
-      - name: Update issue template title
-        id: title
+      - name: Get meeting date
+        id: date
         run: |
           day=$(date -d "next $DATE_WEEKDAY" +%d)
-          month=$(eval echo $MONTH_$(date -d "next $DATE_WEEKDAY" +%m))
+          month_num=$(date -d "next $DATE_WEEKDAY" +%m)
+          month_var="MONTH_$month_num"
+          month=$(eval echo ${!month_var})
           year=$(date -d "next $DATE_WEEKDAY" +%Y)
-          DATA_DA_REUNIAO="$day de $month de $year"
-          title=$(eval echo ${{ steps.extract.outputs.title }})
-          echo "::set-output name=title::$title"
+
+          meeting_date="$day de $month de $year"
+
+          echo "::set-output name=date::$meeting_date"
+
       - name: Create meeting issue
         uses: imjohnbo/issue-bot@v3
         with:
           assignees: ${{ steps.extract.outputs.assignees }}
           labels: ${{ steps.extract.outputs.labels }}
-          title: "${{ steps.title.outputs.title }}"
+          title: "[Reunião] Geral: ${{ steps.date.outputs.date }}"
           body: ${{ steps.extract.outputs.body }}
           pinned: true
           close-previous: false
